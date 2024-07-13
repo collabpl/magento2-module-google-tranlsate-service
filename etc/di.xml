@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Collab GoogleTranslateService for Magento
+ *
+ * @author      Marcin Jędrzejewski <m.jedrzejewski@collab.pl>
+ * @copyright   Collab
+ * @license     MIT
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <preference for="Collab\GoogleTranslateService\Api\Data\ConfigInterface"
+                type="Collab\GoogleTranslateService\Model\Data\Config"/>
+</config>
