@@ -28,7 +28,7 @@ Service's `translate` method accepts two string arguments:
 
 ## Installation details
 ```bash
-composer collab/module-customer-passwordless-login
+composer collab/module-google-translate-service
 bin/magento setup:upgrade
 ```
 
