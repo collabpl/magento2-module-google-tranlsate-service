@@ -27,15 +27,20 @@ class Config extends DataObject implements ConfigInterface
         parent::__construct($data);
     }
 
-    public function getGoogleTranslateApiKey(): ?string
+    public function getProjectId(): ?string
+    {
+        return $this->scopeConfig->getValue(self::XML_PATH_GOOGLE_TRANSLATE_PROJECT_ID, ScopeInterface::SCOPE_STORE);
+    }
+
+    public function getServiceAccountKey(): ?string
     {
         return $this->encryptor->decrypt(
-            $this->scopeConfig->getValue(self::XML_PATH_GOOGLE_TRANSLATE_API_KEY, ScopeInterface::SCOPE_STORE)
+            $this->scopeConfig->getValue(self::XML_PATH_GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY, ScopeInterface::SCOPE_STORE)
         );
     }
 
-    public function getReferer(): ?string
+    public function getLocation(): string
     {
-        return $this->scopeConfig->getValue(self::XML_PATH_GOOGLE_TRANSLATE_REFERER, ScopeInterface::SCOPE_STORE);
+        return $this->scopeConfig->getValue(self::XML_PATH_GOOGLE_TRANSLATE_LOCATION, ScopeInterface::SCOPE_STORE) ?? 'global';
     }
 }

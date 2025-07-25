@@ -13,9 +13,11 @@ namespace Collab\GoogleTranslateService\Api\Data;
 
 interface ConfigInterface
 {
-    public const XML_PATH_GOOGLE_TRANSLATE_API_KEY = 'collab_googletranslateservice/general/api_key';
-    public const XML_PATH_GOOGLE_TRANSLATE_REFERER = 'collab_googletranslateservice/general/referer';
+    public const XML_PATH_GOOGLE_TRANSLATE_PROJECT_ID = 'collab_googletranslateservice/general/project_id';
+    public const XML_PATH_GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY = 'collab_googletranslateservice/general/service_account_key';
+    public const XML_PATH_GOOGLE_TRANSLATE_LOCATION = 'collab_googletranslateservice/general/location';
 
-    public function getGoogleTranslateApiKey(): ?string;
-    public function getReferer(): ?string;
+    public function getProjectId(): ?string;
+    public function getServiceAccountKey(): ?string;
+    public function getLocation(): string;
 }

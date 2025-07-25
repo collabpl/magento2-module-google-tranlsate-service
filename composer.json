@@ -1,6 +1,5 @@
 {
     "name": "collab/module-google-translate-service",
-    "version": "1.0.0",
     "description": "Magento 2 module which provides service for Google Translate API usage.",
     "type": "magento2-module",
     "authors": [
@@ -18,7 +17,7 @@
     ],
     "require": {
         "magento/framework": "^103.0.6",
-        "google/cloud-translate": "*"
+        "google/cloud-translate": "^2.0"
     },
     "license": [
         "MIT"

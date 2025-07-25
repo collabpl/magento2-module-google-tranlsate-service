@@ -13,4 +13,17 @@
 
     <preference for="Collab\GoogleTranslateService\Api\Data\ConfigInterface"
                 type="Collab\GoogleTranslateService\Model\Data\Config"/>
+    
+    <!-- Virtual type for CloudTranslate service with proper logger -->
+    <virtualType name="Collab\GoogleTranslateService\Logger" type="Magento\Framework\Logger\Monolog">
+        <arguments>
+            <argument name="name" xsi:type="string">GoogleTranslateService</argument>
+        </arguments>
+    </virtualType>
+    
+    <type name="Collab\GoogleTranslateService\Service\CloudTranslate">
+        <arguments>
+            <argument name="logger" xsi:type="object">Collab\GoogleTranslateService\Logger</argument>
+        </arguments>
+    </type>
 </config>

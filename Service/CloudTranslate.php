@@ -12,44 +12,195 @@ declare(strict_types=1);
 namespace Collab\GoogleTranslateService\Service;
 
 use Collab\GoogleTranslateService\Api\Data\ConfigInterface;
-use Google\Cloud\Core\Exception\GoogleException;
-use Google\Cloud\Core\Exception\ServiceException;
-use Google\Cloud\Translate\V2\TranslateClient;
+use Google\Cloud\Translate\V3\TranslationServiceClient;
+use Google\ApiCore\ApiException;
+use Psr\Log\LoggerInterface;
 
 class CloudTranslate
 {
-    /**
-     * @throws GoogleException
-     */
+    private ?TranslationServiceClient $translationServiceClient = null;
+
     public function __construct(
-        protected TranslateClient $translateClient,
-        protected ConfigInterface $config
+        protected ConfigInterface $config,
+        protected LoggerInterface $logger
     ) {
-        $this->translateClient = new TranslateClient([
-            'key' => $this->config->getGoogleTranslateApiKey(),
-            'restOptions' => [
-                'headers' => [
-                    'referer' => $this->config->getReferer()
-                ]
-            ]
-        ]);
     }
 
     /**
-     *
-     * @throws ServiceException
+     * Get or create translation service client
+     * 
+     * @return TranslationServiceClient
+     * @throws \Exception
      */
-    public function translate(string $text, string $targetLanguage): ?string
+    private function getTranslationServiceClient(): TranslationServiceClient
     {
-        $currentLanguage = $this->translateClient->detectLanguage($text);
-        if ($currentLanguage['languageCode'] === $targetLanguage) {
-            return $text;
+        if ($this->translationServiceClient === null) {
+            $serviceAccountKey = $this->config->getServiceAccountKey();
+            if (!$serviceAccountKey) {
+                throw new \Exception('Google Cloud service account key is not configured.');
+            }
+
+            // Decode the service account key JSON
+            $keyData = json_decode($serviceAccountKey, true);
+            if (!$keyData) {
+                throw new \Exception('Invalid service account key JSON format.');
+            }
+
+            $this->translationServiceClient = new TranslationServiceClient([
+                'credentials' => $keyData
+            ]);
         }
 
-        $result = $this->translateClient->translate($text, [
-            'target' => $targetLanguage,
-        ]);
+        return $this->translationServiceClient;
+    }
 
-        return $result['text'];
+    /**
+     * Translate text using Google Translate API v3
+     *
+     * @param string $text
+     * @param string $targetLanguage
+     * @param string|null $sourceLanguage
+     * @return string|null
+     * @throws ApiException
+     */
+    public function translate(string $text, string $targetLanguage, ?string $sourceLanguage = null): ?string
+    {
+        try {
+            $projectId = $this->config->getProjectId();
+            if (!$projectId) {
+                throw new \Exception('Google Cloud project ID is not configured.');
+            }
+
+            $location = $this->config->getLocation();
+            $client = $this->getTranslationServiceClient();
+            
+            // Format the parent path
+            $parent = $client->locationName($projectId, $location);
+
+            // Prepare the request
+            $request = [
+                'parent' => $parent,
+                'contents' => [$text],
+                'target_language_code' => $targetLanguage,
+            ];
+
+            // Add source language if provided
+            if ($sourceLanguage) {
+                $request['source_language_code'] = $sourceLanguage;
+            }
+
+            // Make the translation request
+            $response = $client->translateText($request);
+            $translations = $response->getTranslations();
+
+            if (count($translations) > 0) {
+                return $translations[0]->getTranslatedText();
+            }
+
+            return null;
+        } catch (ApiException $e) {
+            $this->logger->error('Google Translate API error: ' . $e->getMessage(), [
+                'text' => $text,
+                'target_language' => $targetLanguage,
+                'source_language' => $sourceLanguage
+            ]);
+            throw $e;
+        } catch (\Exception $e) {
+            $this->logger->error('Translation service error: ' . $e->getMessage(), [
+                'text' => $text,
+                'target_language' => $targetLanguage,
+                'source_language' => $sourceLanguage
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Detect language of the given text
+     *
+     * @param string $text
+     * @return string|null
+     * @throws ApiException
+     */
+    public function detectLanguage(string $text): ?string
+    {
+        try {
+            $projectId = $this->config->getProjectId();
+            if (!$projectId) {
+                throw new \Exception('Google Cloud project ID is not configured.');
+            }
+
+            $location = $this->config->getLocation();
+            $client = $this->getTranslationServiceClient();
+            
+            // Format the parent path
+            $parent = $client->locationName($projectId, $location);
+
+            // Make the detect language request
+            $response = $client->detectLanguage([
+                'parent' => $parent,
+                'content' => $text
+            ]);
+
+            $languages = $response->getLanguages();
+            if (count($languages) > 0) {
+                return $languages[0]->getLanguageCode();
+            }
+
+            return null;
+        } catch (ApiException $e) {
+            $this->logger->error('Google Translate language detection error: ' . $e->getMessage(), [
+                'text' => $text
+            ]);
+            throw $e;
+        } catch (\Exception $e) {
+            $this->logger->error('Language detection service error: ' . $e->getMessage(), [
+                'text' => $text
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Get supported languages
+     *
+     * @return array
+     * @throws ApiException
+     */
+    public function getSupportedLanguages(): array
+    {
+        try {
+            $projectId = $this->config->getProjectId();
+            if (!$projectId) {
+                throw new \Exception('Google Cloud project ID is not configured.');
+            }
+
+            $location = $this->config->getLocation();
+            $client = $this->getTranslationServiceClient();
+            
+            // Format the parent path
+            $parent = $client->locationName($projectId, $location);
+
+            // Get supported languages
+            $response = $client->getSupportedLanguages([
+                'parent' => $parent
+            ]);
+
+            $languages = [];
+            foreach ($response->getLanguages() as $language) {
+                $languages[] = [
+                    'language_code' => $language->getLanguageCode(),
+                    'display_name' => $language->getDisplayName()
+                ];
+            }
+
+            return $languages;
+        } catch (ApiException $e) {
+            $this->logger->error('Google Translate get supported languages error: ' . $e->getMessage());
+            throw $e;
+        } catch (\Exception $e) {
+            $this->logger->error('Get supported languages service error: ' . $e->getMessage());
+            throw $e;
+        }
     }
 }

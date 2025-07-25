@@ -20,14 +20,21 @@
             <resource>Collab_GoogleTranslateService::management</resource>
             <group id="general" translate="label" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
                 <label>API Configuration</label>
-                <field id="api_key" translate="label" type="obscure" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
-                    <label>API Key</label>
-                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-                    <comment>Enter Yours Google Translate API key here.</comment>
+                <field id="project_id" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Google Cloud Project ID</label>
+                    <comment><![CDATA[Enter your Google Cloud project ID. <a href="https://console.cloud.google.com/" target="_blank">Find your project ID</a>]]></comment>
+                    <validate>required-entry</validate>
                 </field>
-                <field id="referer" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
-                    <label>Referer</label>
-                    <comment>Enter Yours website URL here.</comment>
+                <field id="service_account_key" translate="label" type="textarea" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Service Account Key (JSON)</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <comment><![CDATA[Paste the entire JSON content of your service account key file. <a href="https://cloud.google.com/translate/docs/setup" target="_blank">Learn how to create service account</a>]]></comment>
+                    <validate>required-entry</validate>
+                </field>
+                <field id="location" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                    <label>Location</label>
+                    <source_model>Collab\GoogleTranslateService\Model\Config\Source\Location</source_model>
+                    <comment>Select the location for your translation requests. Use 'global' for most cases.</comment>
                 </field>
             </group>
         </section>
